@@ -1,10 +1,7 @@
 """
-Defines hexagonal grids and cells, where the cells are flat-topped and
-the grid is indexed (col, row) by the "odd-q" method discussed at
-https://www.redblobgames.com/grids/hexagons/
+Defines a hexagonal grid.
 """
 
-from .cell import Cell
 from .grid import Grid
 
 def run_once(func):
@@ -48,5 +45,4 @@ def load_tests(loader, tests, ignore):
     import doctest
     tests.addTests(doctest.DocTestSuite('hexgrid'))
     tests.addTests(doctest.DocTestSuite('hexgrid.grid'))
-    tests.addTests(doctest.DocTestSuite('hexgrid.cell'))
     return tests

@@ -1,5 +1,5 @@
 import unittest
-from hexgrid import Cell, Grid
+from hexgrid import  Grid
 
 
 class TestGrid(unittest.TestCase):
@@ -76,20 +76,3 @@ class TestGrid(unittest.TestCase):
         for c, e in zip(coords, expected):
             out = Grid.convert(c, 'offset-odd-row', 'offset-even-column')
             self.assertSequenceEqual(out, e)
-
-
-class TestCell(unittest.TestCase):
-    def test_init(self):
-        _ = Cell((0, 0), cell_type='flat-topped')
-        self.assertRaises(ValueError, Cell, (0, 0), 'invalid')
-
-    def test_eq(self):
-        c = Cell((0, 0))
-        d = Cell((0, 0))
-        self.assertEqual(c, d)
-        e = Cell((0.01, 0.00001))
-        self.assertNotEqual(c, e)
-
-    def test_hash(self):
-        c = Cell((0, 0))
-        self.assertRaises(NotImplementedError, c.__hash__)
