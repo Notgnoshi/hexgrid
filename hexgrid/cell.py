@@ -1,28 +1,29 @@
-import math
-
-
 class Cell(object):
     """
-        Implements a flat-topped hexagonal cell.
+        Implements a hexagonal Cell.
     """
-    def __init__(self, x=0, y=0, radius=1):
-        self.x = x
-        self.y = y
-        self.radius = radius
+    def __init__(self, coordinates, cell_type='pointy-topped'):
+        """
+            Constructs either a 'pointy-topped' (default) hexagonal cell, or a
+            'flat-topped' cell.
+        """
 
-    def corners(self):
-        """
-            Returns an iterable of the corner vertices of the hexagonal cell.
-        """
-        for i in range(6):
-            theta = i * math.pi / 3
-            yield (self.x + self.radius * math.cos(theta),
-                   self.y + self.radius * math.sin(theta))
+        if cell_type.lower() not in ['pointy-topped', 'flat-topped']:
+            raise ValueError('cell_type must be one of: \'pointy-topped\' or \'flat-topped\'')
+
+        self.cell_type = cell_type.lower()
+        self.coordinates = coordinates
+        # Cells are containers
+        self.data = None
 
     def __repr__(self):
-        return f'<Cell {self.x}, {self.y}>'
+        return f'<Cell {id(self)}>'
 
     def __eq__(self, other):
         if isinstance(other, Cell):
             return self.__dict__ == other.__dict__
         return False
+
+    def __hash__(self):
+        # TODO: Make Cells hashable by their coordinates
+        raise NotImplementedError

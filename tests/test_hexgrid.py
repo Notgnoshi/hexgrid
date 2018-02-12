@@ -1,52 +1,95 @@
-from math import pi, sin, cos
 import unittest
 from hexgrid import Cell, Grid
 
 
-class TestCell(unittest.TestCase):
-    def test_corners(self):
-        for x, y, r in [(0, 0, 0), (0, 0, 1), (1, 1, 3), (-1, 1, 2), (0.5, 0.333, 35)]:
-            c = Cell(x=x, y=y, radius=r)
-            corners = tuple(c.corners())
-            angles = (0, pi/3, 2*pi/3, pi, 4*pi/3, 5*pi/3)
-            points = tuple((x + r * cos(t), y + r * sin(t)) for t in angles)
-            self.assertSequenceEqual(corners, points)
-
-    def test_equals(self):
-        g1 = Cell(2, 1, 4)
-        g2 = Cell(2, 1, 4)
-        self.assertEqual(g1, g2)
-
-        g3 = Cell(2, 1.5, 4)
-        self.assertNotEqual(g1, g3)
-
 class TestGrid(unittest.TestCase):
-    def test_adjacent_coords(self):
-        # Note that the returned coordinates from adjacent_coordinates are in (col, row) order
-        g = Grid(2, 2)
-        # coord adjacent to (0, 0)
-        adj = [(1, 0), (0, 1)]
-        self.assertSequenceEqual(adj, g.adjacent_coordinates(0, 0))
+    def test_init(self):
+        # Make sure we can construct all of the different options.
+        g = Grid(hexagon_type='pointy-topped', coordinate_system='offset')
+        g = Grid(hexagon_type='pointy-topped', coordinate_system='offset-odd-row')
+        g = Grid(hexagon_type='pointy-topped', coordinate_system='offset-even-row')
+        g = Grid(hexagon_type='pointy-topped', coordinate_system='cube')
+        g = Grid(hexagon_type='pointy-topped', coordinate_system='axial')
+        g = Grid(hexagon_type='flat-topped', coordinate_system='offset')
+        g = Grid(hexagon_type='flat-topped', coordinate_system='offset-odd-column')
+        g = Grid(hexagon_type='flat-topped', coordinate_system='offset-even-column')
+        g = Grid(hexagon_type='flat-topped', coordinate_system='cube')
+        g = Grid(hexagon_type='flat-topped', coordinate_system='axial')
 
-        # Coords adjacent to (1, 0)
-        adj = [(0, 0), (0, 1), (1, 1)]
-        self.assertSequenceEqual(adj, g.adjacent_coordinates(1, 0))
+        # Make sure we can't do invalid things
+        self.assertRaises(ValueError, Grid, 'invalid', 'offset')
+        self.assertRaises(ValueError, Grid, 'flat-topped', 'invalid')
 
-        # A 1x1 grid has no adjacent coordinates at (0, 0)
-        g = Grid(1, 1)
-        self.assertSequenceEqual([], g.adjacent_coordinates(0, 0))
+        # Make sure we can't do incompatible things.
+        self.assertRaises(ValueError, Grid, 'pointy-topped', 'offset-odd-column')
+        self.assertRaises(ValueError, Grid, 'pointy-topped', 'offset-even-column')
+        self.assertRaises(ValueError, Grid, 'flat-topped', 'offset-odd-row')
+        self.assertRaises(ValueError, Grid, 'flat-topped', 'offset-even-row')
 
-        g = Grid(3, 3)
-        # In counter clockwise order, starting at the lower right.
-        adj = [(2, 2), (2, 1), (1, 0), (0, 1), (0, 2), (1, 2)]
-        self.assertSequenceEqual(adj, g.adjacent_coordinates(1, 1))
+        # Make sure using the 'offset' conveniency option gets handled right.
+        g = Grid(hexagon_type='pointy-topped', coordinate_system='offset')
+        self.assertEqual(g.coordinate_system, 'offset-odd-row')
+        g = Grid(hexagon_type='flat-topped', coordinate_system='offset')
+        self.assertEqual(g.coordinate_system, 'offset-odd-column')
 
-    def test_adjacent_cells(self):
-        g = Grid(3, 3)
-        adj = [Cell(2, 2), Cell(2, 1), Cell(1, 0), Cell(0, 1), Cell(0, 2), Cell(1, 2)]
-        cells = g.adjacent_cells(1, 1)
-        self.assertSequenceEqual(adj, cells)
+    def test_conversion_invertible(self):
+        c = (2, -6, 4)
+        out = Grid.convert(c, 'cube', 'axial')
+        self.assertSequenceEqual(out, (2, 4))
+        self.assertSequenceEqual(c, Grid.convert(out, 'axial', 'cube'))
 
-    def test_draw(self):
-        g = Grid(1, 1)
-        self.assertRaises(NotImplementedError, g.draw)
+        # Make sure conversions are invertible.
+        coords = [(0, 0), (1, 1), (2, 3), (-2, 2), (2, 15), (20, 2), (2, -2), (-13.5, 2372.2)]
+        for c in coords:
+            for from_sys in Grid.COORDINATE_SYSTEM_OPTIONS[1:-1]:
+                for to_sys in Grid.COORDINATE_SYSTEM_OPTIONS[1:-1]:
+                    out = Grid.convert(c, from_sys, to_sys)
+                    self.assertSequenceEqual(c, Grid.convert(out, to_sys, from_sys))
+
+        # Recall that cubic coordinates must sum to 0...
+        coords = [(0, 0, 0), (1, -2, 1), (1, 2, -3), (10.5, -10.5, 0)]
+        for c in coords:
+            for to_sys in Grid.COORDINATE_SYSTEM_OPTIONS[1:-1]:
+                out = Grid.convert(c, 'cube', to_sys)
+                self.assertSequenceEqual(c, Grid.convert(out, to_sys, 'cube'))
+
+        # Make sure cubic coordinates pass through completely unchanged.
+        for c in coords:
+            out = Grid.convert(c, 'cube', 'cube')
+            self.assertSequenceEqual(c, out)
+
+    def test_offset_conversion(self):
+        coords = [(0, 0), (0, 1), (0, 2), (-1, 2), (3, -4)]
+        expected = [(0, 0), (1, 1), (0, 2), (-1, 2), (3, -4)]
+        for c, e in zip(coords, expected):
+            out = Grid.convert(c, 'offset-odd-row', 'offset-even-row')
+            self.assertSequenceEqual(out, e)
+
+        coords = [(0, 0), (0, 1), (0, 2), (-1, 2), (3, -4)]
+        expected = [(0, 0), (0, 1), (-1, 1), (-2, 1), (5, -2)]
+        for c, e in zip(coords, expected):
+            out = Grid.convert(c, 'offset-odd-row', 'offset-odd-column')
+            self.assertSequenceEqual(out, e)
+
+        coords = [(0, 0), (0, 1), (0, 2), (-1, 2), (3, -4)]
+        expected = [(0, 0), (0, 1), (-1, 2), (-2, 1), (5, -1)]
+        for c, e in zip(coords, expected):
+            out = Grid.convert(c, 'offset-odd-row', 'offset-even-column')
+            self.assertSequenceEqual(out, e)
+
+
+class TestCell(unittest.TestCase):
+    def test_init(self):
+        _ = Cell((0, 0), cell_type='flat-topped')
+        self.assertRaises(ValueError, Cell, (0, 0), 'invalid')
+
+    def test_eq(self):
+        c = Cell((0, 0))
+        d = Cell((0, 0))
+        self.assertEqual(c, d)
+        e = Cell((0.01, 0.00001))
+        self.assertNotEqual(c, e)
+
+    def test_hash(self):
+        c = Cell((0, 0))
+        self.assertRaises(NotImplementedError, c.__hash__)
