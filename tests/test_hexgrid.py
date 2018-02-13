@@ -105,14 +105,14 @@ class TestGrid(unittest.TestCase):
         self.assertTrue((0, 0) in g)
         self.assertTrue((1, 1) in g)
         self.assertEqual(len(g), 2)
-        self.assertTrue(g[0, 0])
-        self.assertFalse(g[1, 1])
+        self.assertEqual(g[0, 0], True)
+        self.assertEqual(g[1, 1], False)
         del g[0, 0]
         self.assertFalse((0, 0) in g)
         self.assertEqual(len(g), 1)
         del g[1, 1]
         self.assertFalse((1, 1) in g)
-        self.assertEqual(len(g),0)
+        self.assertEqual(len(g), 0)
 
     def test_neighbor_coordinates(self):
         g = Grid(hexagon_type='pointy-topped', coordinate_system='offset-odd-rows')
