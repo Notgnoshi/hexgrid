@@ -2,7 +2,11 @@ import itertools
 import math
 from tkinter import Tk, Canvas, ALL, BOTH
 
-from hexgrid import Grid
+from .grid import Grid
+from .enums import HexagonType, CoordinateSystem
+from .enums import FLAT, POINTY
+from .enums import OFFSET, CUBIC, AXIAL
+from .enums import OFFSET_EVEN_COLUMNS, OFFSET_ODD_COLUMNS, OFFSET_EVEN_ROWS, OFFSET_ODD_ROWS
 
 
 class DrawGrid(Canvas):
@@ -79,8 +83,8 @@ class DrawGrid(Canvas):
         """
             Converts hexagonal coordinates to cartesian pixel coordinates for drawing on a screen.
         """
-        q, r = Grid.convert(coord, self.grid.coordinate_system, 'axial')
-        if self.grid.hexagon_type == 'pointy-topped':
+        q, r = Grid.convert(coord, self.grid.coordinate_system, AXIAL)
+        if self.grid.hexagon_type == POINTY:
             x = radius * math.sqrt(3) * (q + r / 2)
             y = radius * (3 / 2) * r
         else:
@@ -96,7 +100,7 @@ class DrawGrid(Canvas):
         x, y = coord
         corners = []
 
-        if self.grid.hexagon_type == 'pointy-topped':
+        if self.grid.hexagon_type == POINTY:
             for i in range(6):
                 theta = (math.pi / 3) * i + math.pi / 6
                 cx = x + radius * math.cos(theta)

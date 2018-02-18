@@ -1,37 +1,30 @@
+from .enums import CoordinateSystem, HexagonType
+from .enums import FLAT, POINTY
+from .enums import OFFSET, CUBIC, AXIAL
+from .enums import OFFSET_EVEN_COLUMNS, OFFSET_ODD_COLUMNS, OFFSET_EVEN_ROWS, OFFSET_ODD_ROWS
+
+
 class Grid(dict):
     """
         Implements a configurable hexagonal Grid.
     """
 
-    HEXAGON_TYPE_OPTIONS = ['pointy-topped',
-                            'flat-topped',
-                           ]
-
-    COORDINATE_SYSTEM_OPTIONS = ['offset',
-                                 'offset-odd-rows',
-                                 'offset-odd-columns',
-                                 'offset-even-rows',
-                                 'offset-even-columns',
-                                 'axial',
-                                 'cube',
-                                ]
-
-    def __init__(self, hexagon_type='pointy-topped', coordinate_system='offset'):
+    def __init__(self, hexagon_type=POINTY, coordinate_system=OFFSET):
         """
             Constructs an empty Grid with a given coordinate system and hexagon type. Choices for
             the hexagon type are:
 
-                * 'pointy-topped'                 (default)
-                * 'flat-topped'
+                * POINTY                    (default)
+                * FLAT
 
             Coordinate system choices are one of the following:
 
-                * 'offset' or 'offset-odd-rows'    (default if hexagon_type is 'pointy-topped')
-                * 'offset-odd-columns'             (default if hexagon_type is 'flat-topped')
-                * 'offset-even-rows'
-                * 'offset-even-columns'
-                * 'cube'
-                * 'axial'
+                * OFFSET or OFFSET_ODD_ROWS (default if hexagon_type is POINTY)
+                * OFFSET_ODD_COLUMNS        (default if hexagon_type is FLAT)
+                * OFFSET_EVEN_ROWS
+                * OFFSET_EVEN_COLUMNS
+                * CUBIC
+                * AXIAL
 
             All of the coordinate systems use ordered pairs to index Cells except the 'cube'
             coordinate system, which uses ordered (x, y, z) triples.
@@ -39,32 +32,32 @@ class Grid(dict):
             Examples:
 
             >>> Grid()
-            <Grid pointy-topped, offset-odd-rows>
-            >>> Grid(hexagon_type='flat-topped')
-            <Grid flat-topped, offset-odd-columns>
-            >>> Grid(coordinate_system='axial')
-            <Grid pointy-topped, axial>
+            <Grid POINTY, OFFSET_ODD_ROWS>
+            >>> Grid(hexagon_type=FLAT)
+            <Grid FLAT, OFFSET_ODD_COLUMNS>
+            >>> Grid(coordinate_system=AXIAL)
+            <Grid POINTY, AXIAL>
         """
         # Check the hexagon_type and coordinate_system for option errors.
-        if hexagon_type.lower() not in self.HEXAGON_TYPE_OPTIONS:
-            raise ValueError(f"`hexagon_type` must be one of {self.HEXAGON_TYPE_OPTIONS}")
-        if coordinate_system.lower() not in self.COORDINATE_SYSTEM_OPTIONS:
-            raise ValueError(f"`coordinate_system` must be one of {self.COORDINATE_SYSTEM_OPTIONS}")
+        if hexagon_type not in HexagonType:
+            raise ValueError(f'invalid hexagon type {hexagon_type}')
+        if coordinate_system not in CoordinateSystem:
+            raise ValueError(f'invalid coordinate system {coordinate_system}')
 
         # Handle the conveniency 'offset' option for coordinate_system
-        if coordinate_system.lower() == 'offset' and hexagon_type.lower() == 'pointy-topped':
-            coordinate_system = 'offset-odd-rows'
-        elif coordinate_system.lower() == 'offset' and hexagon_type.lower() == 'flat-topped':
-            coordinate_system = 'offset-odd-columns'
+        if coordinate_system is OFFSET and hexagon_type is POINTY:
+            coordinate_system = OFFSET_ODD_ROWS
+        elif coordinate_system is OFFSET and hexagon_type is FLAT:
+            coordinate_system = OFFSET_ODD_COLUMNS
 
         # Make sure types are compatable.
-        if hexagon_type.lower() == 'flat-topped' and 'row' in coordinate_system.lower():
+        if hexagon_type is FLAT and 'ROWS' in coordinate_system.name:
             raise ValueError('Cannot offset by row when using flat-topped hexagons')
-        if hexagon_type.lower() == 'pointy-topped' and 'column' in coordinate_system.lower():
+        if hexagon_type is POINTY and 'COLUMNS' in coordinate_system.name:
             raise ValueError('Cannot offset by column when using pointy-topped hexagons')
 
-        self.hexagon_type = hexagon_type.lower()
-        self.coordinate_system = coordinate_system.lower()
+        self.hexagon_type = hexagon_type
+        self.coordinate_system = coordinate_system
         super().__init__()
 
     def __repr__(self):
@@ -75,9 +68,9 @@ class Grid(dict):
             Examples:
 
             >>> Grid()
-            <Grid pointy-topped, offset-odd-rows>
+            <Grid POINTY, OFFSET_ODD_ROWS>
         """
-        return f'<Grid {self.hexagon_type}, {self.coordinate_system}>'
+        return f'<Grid {self.hexagon_type.name}, {self.coordinate_system.name}>'
 
     def _assert_valid_coordinates(self, coordinates):
         """
@@ -86,9 +79,9 @@ class Grid(dict):
         if isinstance(coordinates, int):
             raise NotImplementedError('integer indexing not supported')
         elif isinstance(coordinates, tuple):
-            if self.coordinate_system == 'cube' and len(coordinates) != 3:
+            if self.coordinate_system is CUBIC and len(coordinates) != 3:
                 raise ValueError('key must be a 3-tuple')
-            elif self.coordinate_system != 'cube' and len(coordinates) != 2:
+            elif self.coordinate_system is not CUBIC and len(coordinates) != 2:
                 raise ValueError('key must be a 2-tuple')
             if not all(isinstance(x, int) for x in coordinates):
                 raise ValueError('key must be a tuple of integers')
@@ -129,21 +122,22 @@ class Grid(dict):
             given coordinates.
         """
 
+        # TODO: move to a utils module?
         def __add_coordinates(t1, t2):
             """Add two tuples componentwise"""
             return tuple(c1 + c2 for c1, c2 in zip(t1, t2))
 
-        coordinates = self.convert(coordinates, self.coordinate_system, 'cube')
+        coordinates = self.convert(coordinates, self.coordinate_system, CUBIC)
         cube_directions = [
             (+1, -1, 0), (+1, 0, -1), (0, +1, -1),
             (-1, +1, 0), (-1, 0, +1), (0, -1, +1)
         ]
 
-        neighbors = [__add_coordinates(d, coordinates) for d in cube_directions]
-        neighbors = [self.convert(c, 'cube', self.coordinate_system) for c in neighbors]
+        adj = [__add_coordinates(d, coordinates) for d in cube_directions]
+        adj = [self.convert(c, CUBIC, self.coordinate_system) for c in adj]
         if validate:
-            return [neighbor for neighbor in neighbors if neighbor in self]
-        return neighbors
+            return [neighbor for neighbor in adj if neighbor in self]
+        return adj
 
     def neighbors(self, coordinates):
         """
@@ -156,8 +150,8 @@ class Grid(dict):
         """
             Returns the distance between two given cell coordinates.
         """
-        ax, ay, az = self.convert(coord1, self.coordinate_system, 'cube')
-        bx, by, bz = self.convert(coord2, self.coordinate_system, 'cube')
+        ax, ay, az = self.convert(coord1, self.coordinate_system, CUBIC)
+        bx, by, bz = self.convert(coord2, self.coordinate_system, CUBIC)
         return max(abs(ax - bx), abs(ay - by), abs(az - bz))
 
     def line_coordinates(self, coord1, coord2, validate=True):
@@ -190,11 +184,11 @@ class Grid(dict):
 
         N = self.distance(coord1, coord2)
         # Convert coordinate system after computing distance so distance knows what system to use
-        coord1 = self.convert(coord1, self.coordinate_system, 'cube')
-        coord2 = self.convert(coord2, self.coordinate_system, 'cube')
+        coord1 = self.convert(coord1, self.coordinate_system, CUBIC)
+        coord2 = self.convert(coord2, self.coordinate_system, CUBIC)
 
         cells = [__cube_round(__cube_lerp(coord1, coord2, i / N)) for i in range(N + 1)]
-        cells = [self.convert(c, 'cube', self.coordinate_system) for c in cells]
+        cells = [self.convert(c, CUBIC, self.coordinate_system) for c in cells]
 
         if validate:
             return [c for c in cells if c in self]
@@ -239,14 +233,15 @@ class Grid(dict):
             coordinates must sum to 0.
 
             Example
-            >>> Grid.convert((0, 0), 'axial', 'cube')
+            >>> Grid.convert((0, 0), AXIAL, CUBIC)
             (0, 0, 0)
         """
-        # Cannot convert to or from the 'offset' system as it's an alias for one of two systems.
-        if from_sys not in cls.COORDINATE_SYSTEM_OPTIONS[1:]:
-            raise ValueError(f"`from_sys` must be one of {cls.COORDINATE_SYSTEM_OPTIONS[1:]}")
-        if to_sys not in cls.COORDINATE_SYSTEM_OPTIONS[1:]:
-            raise ValueError(f"`to_sys` must be one of {cls.COORDINATE_SYSTEM_OPTIONS[1:]}")
+        if from_sys is OFFSET or to_sys is OFFSET:
+            raise ValueError('OFFSET not detailed enough. Offset by row or column explicitly.')
+        if from_sys not in CoordinateSystem:
+            raise ValueError(f'invalid coordinate system {from_sys}')
+        if to_sys not in CoordinateSystem:
+            raise ValueError(f'invalid coordinate system {to_sys}')
 
         if from_sys == to_sys:
             return coordinates
@@ -341,21 +336,21 @@ class Grid(dict):
             return col, row
 
         to_cube = {
-            'axial': __axial_to_cube,
-            'offset-odd-rows': __odd_row_to_cube,
-            'offset-odd-columns': __odd_column_to_cube,
-            'offset-even-rows': __even_row_to_cube,
-            'offset-even-columns': __even_column_to_cube,
-            'cube': __identity,
+            AXIAL: __axial_to_cube,
+            OFFSET_ODD_ROWS: __odd_row_to_cube,
+            OFFSET_ODD_COLUMNS: __odd_column_to_cube,
+            OFFSET_EVEN_ROWS: __even_row_to_cube,
+            OFFSET_EVEN_COLUMNS: __even_column_to_cube,
+            CUBIC: __identity,
         }
 
         from_cube = {
-            'axial': __cube_to_axial,
-            'offset-odd-rows': __cube_to_odd_row,
-            'offset-odd-columns': __cube_to_odd_column,
-            'offset-even-rows': __cube_to_even_row,
-            'offset-even-columns': __cube_to_even_column,
-            'cube': __identity,
+            AXIAL: __cube_to_axial,
+            OFFSET_ODD_ROWS: __cube_to_odd_row,
+            OFFSET_ODD_COLUMNS: __cube_to_odd_column,
+            OFFSET_EVEN_ROWS: __cube_to_even_row,
+            OFFSET_EVEN_COLUMNS: __cube_to_even_column,
+            CUBIC: __identity,
         }
 
         partially_converted = to_cube[from_sys](coordinates)
@@ -368,13 +363,20 @@ class Grid(dict):
             item in the Grid.
         """
 
-        if new_system not in self.COORDINATE_SYSTEM_OPTIONS[1:]:
+        if new_system not in CoordinateSystem:
             raise ValueError(f'Cannot switch to coordinate system {new_system}')
 
-        if 'rows' in new_system:
-            self.hexagon_type = 'pointy-topped'
-        elif 'columns' in new_system:
-            self.hexagon_type = 'flat-topped'
+        # Handle the conveniency 'offset' option for coordinate_system
+        if new_system is OFFSET and self.hexagon_type is POINTY:
+            new_system = OFFSET_ODD_ROWS
+        elif new_system is OFFSET and self.hexagon_type is FLAT:
+            new_system = OFFSET_ODD_COLUMNS
+
+        # Change the hexagon type if necessary
+        if 'ROWS' in new_system.name:
+            self.hexagon_type = POINTY
+        elif 'COLUMNS' in new_system.name:
+            self.hexagon_type = FLAT
 
         tmp = []
         old_system = self.coordinate_system
