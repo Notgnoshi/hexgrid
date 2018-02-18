@@ -116,44 +116,44 @@ class TestGrid(unittest.TestCase):
 
     def test_neighbor_coordinates(self):
         g = Grid(hexagon_type='pointy-topped', coordinate_system='offset-odd-rows')
-        n = g.neighbor_coordinates((1, 1))
+        n = g.neighbor_coordinates((1, 1), validate=False)
         expected = [(2, 1), (2, 0), (1, 0), (0, 1), (1, 2), (2, 2)]
         self.assertSequenceEqual(n, expected)
 
         g = Grid(hexagon_type='pointy-topped', coordinate_system='offset-even-rows')
-        n = g.neighbor_coordinates((1, 1))
+        n = g.neighbor_coordinates((1, 1), validate=False)
         expected = [(2, 1), (1, 0), (0, 0), (0, 1), (0, 2), (1, 2)]
         self.assertSequenceEqual(n, expected)
 
         g = Grid(hexagon_type='flat-topped', coordinate_system='offset-odd-columns')
-        n = g.neighbor_coordinates((1, 1))
+        n = g.neighbor_coordinates((1, 1), validate=False)
         expected = [(2, 2), (2, 1), (1, 0), (0, 1), (0, 2), (1, 2)]
         self.assertSequenceEqual(n, expected)
 
         g = Grid(hexagon_type='flat-topped', coordinate_system='offset-even-columns')
-        n = g.neighbor_coordinates((1, 1))
+        n = g.neighbor_coordinates((1, 1), validate=False)
         expected = [(2, 1), (2, 0), (1, 0), (0, 0), (0, 1), (1, 2)]
         self.assertSequenceEqual(n, expected)
 
         g = Grid(hexagon_type='pointy-topped', coordinate_system='axial')
-        n = g.neighbor_coordinates((1, 1))
+        n = g.neighbor_coordinates((1, 1), validate=False)
         expected = [(2, 1), (2, 0), (1, 0), (0, 1), (0, 2), (1, 2)]
         self.assertSequenceEqual(n, expected)
 
         # Flat topped vs pointy topped in axial coordinates just rotates the grid
         g = Grid(hexagon_type='flat-topped', coordinate_system='axial')
-        n = g.neighbor_coordinates((1, 1))
+        n = g.neighbor_coordinates((1, 1), validate=False)
         expected = [(2, 1), (2, 0), (1, 0), (0, 1), (0, 2), (1, 2)]
         self.assertSequenceEqual(n, expected)
 
         g = Grid(hexagon_type='pointy-topped', coordinate_system='cube')
-        n = g.neighbor_coordinates((2, 0, -2))
+        n = g.neighbor_coordinates((2, 0, -2), validate=False)
         expected = [(3, -1, -2), (3, 0, -3), (2, 1, -3), (1, 1, -2), (1, 0, -1), (2, -1, -1)]
         self.assertSequenceEqual(n, expected)
 
         # Flat topped vs pointy topped in cubic coordinates just rotates the grid
         g = Grid(hexagon_type='flat-topped', coordinate_system='cube')
-        n = g.neighbor_coordinates((2, 0, -2))
+        n = g.neighbor_coordinates((2, 0, -2), validate=False)
         expected = [(3, -1, -2), (3, 0, -3), (2, 1, -3), (1, 1, -2), (1, 0, -1), (2, -1, -1)]
         self.assertSequenceEqual(n, expected)
 
@@ -178,3 +178,10 @@ class TestGrid(unittest.TestCase):
         g = Grid()
         g[0, 0] = 'center'
         self.assertEqual([], g.neighbors((0, 0)))
+
+    def test_set_coordinate(self):
+        g = Grid()
+        g[0, 0] = None
+        g.set_coordinate_system('cube')
+        coord = tuple(g.keys())[0]
+        self.assertSequenceEqual(coord, (0, 0, 0))
