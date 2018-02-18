@@ -10,7 +10,7 @@ Implements a hexagonal grid container class with flexible coordinate systems.
 
 ## TODO list
 
-* `within`, `ring`, and `spiral`.
+* `within`, `ring`.
 * Documentation and examples
 * `shortest_path(coord1, coord2)`
 * `convex hull`

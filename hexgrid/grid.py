@@ -222,20 +222,6 @@ class Grid(dict):
         """
         return [self[key] for key in self.ring_coordinates(center, radius, validate=True)]
 
-    def spiral_coordinates(self, center, radius, validate=True):
-        """
-            Returns an ordered list of coordinates spiralling away from the given
-            center to some radius.
-        """
-        raise NotImplementedError
-
-    def spiral(self, center, radius):
-        """
-            Returns an ordered list of cells spiralling away from the given
-            cell with a given radius.
-        """
-        return [self[key] for key in self.spiral_coordinates(center, radius, validate=True)]
-
     def shortest_path_coordinates(self, coordinate1, coordinate2):
         """
             Returns an ordered list of coordinates between two given coordinates representing
