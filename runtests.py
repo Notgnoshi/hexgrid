@@ -10,7 +10,7 @@ def runtests(processes=4):
     # Discover all tests in the current directory that are prefixed with `test`. Also discovers
     # the doctests loaded by defining a load_tests(...) function in the module __init__.py
     loader = unittest.TestLoader()
-    doctest_suite = loader.discover('.', pattern='test*.py')
+    doctest_suite = loader.discover('./tests/', pattern='test*.py')
     runner = unittest.runner.TextTestRunner()
 
     try:
