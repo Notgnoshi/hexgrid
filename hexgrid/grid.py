@@ -79,11 +79,10 @@ class Grid(dict):
         """
         return f'<Grid {self.hexagon_type}, {self.coordinate_system}>'
 
-    def neighbor_coordinates(self, coordinates):
+    def neighbor_coordinates(self, coordinates, validate=True):
         """
-            Returns unvalidated neighboring cell coordinates to some given coordinates. Will happily
-            return coordinates off the current grid, or coordinates to nonexistent items in the
-            grid. Does not include the given coordinates.
+            Returns neighboring cell coordinates to some given coordinates. Does not include the
+            given coordinates.
         """
 
         def __add_coordinates(t1, t2):
@@ -96,10 +95,11 @@ class Grid(dict):
             (-1, +1, 0), (-1, 0, +1), (0, -1, +1)
         ]
 
-        neighbors = []
-        for direction in cube_directions:
-            neighbors.append(__add_coordinates(direction, coordinates))
-        return [self.convert(c, 'cube', self.coordinate_system) for c in neighbors]
+        neighbors = [__add_coordinates(d, coordinates) for d in cube_directions]
+        neighbors = [self.convert(c, 'cube', self.coordinate_system) for c in neighbors]
+        if validate:
+            return [neighbor for neighbor in neighbors if neighbor in self]
+        return neighbors
 
     def neighbors(self, coordinates):
         """
@@ -318,3 +318,19 @@ class Grid(dict):
         partially_converted = to_cube[from_sys](coordinates)
         fully_converted = from_cube[to_sys](partially_converted)
         return fully_converted
+
+    def set_coordinate_system(self, new_system):
+        """
+            Converts grid to the given coordinate system. Essentially removes and reinserts every
+            item in the Grid.
+        """
+        tmp = []
+        old_system = self.coordinate_system
+        self.coordinate_system = new_system
+        while self:
+            old_key, value = self.popitem()
+            new_key = self.convert(old_key, old_system, self.coordinate_system)
+            tmp.append((new_key, value))
+
+        for key, value in tmp:
+            self[key] = value

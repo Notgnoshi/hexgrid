@@ -3,6 +3,7 @@ Defines a hexagonal grid.
 """
 
 from .grid import Grid
+from .draw import DrawGrid
 
 def run_once(func):
     """
