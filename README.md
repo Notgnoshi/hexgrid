@@ -21,3 +21,4 @@ Implements a hexagonal grid container class with flexible coordinate systems.
   * Pretty colors
   * SVG? Might work better with Jupyter...
   * Make `draw` a method of `Grid`?
+  * What happens if you try to draw nothing? (hint: it crashes)

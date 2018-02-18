@@ -13,7 +13,7 @@ class DrawGrid(Canvas):
     """
         Draws a Grid object for debugging purposes.
     """
-    def __init__(self, grid, coords=None, radius=50, master=Tk()):
+    def __init__(self, grid, radius=50, master=Tk()):
         """
             Draws the given Grid. If an iterable of coordinates is given, only draw the cells with
             the given coordinates. The default radius for the hexagonal cells is 50 pixels.
@@ -23,10 +23,6 @@ class DrawGrid(Canvas):
         self.width = self.winfo_width()
         self.bind("<Configure>", self.on_resize)
         self.grid = grid
-        if coords is None:
-            self.coords = grid.keys()
-        else:
-            self.coords = coords
         self.radius = radius
 
     def draw_hexagon(self, coord, label=False, fill='#7070ff'):
