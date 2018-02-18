@@ -324,6 +324,15 @@ class Grid(dict):
             Converts grid to the given coordinate system. Essentially removes and reinserts every
             item in the Grid.
         """
+
+        if new_system not in self.COORDINATE_SYSTEM_OPTIONS[1:]:
+            raise ValueError(f'Cannot switch to coordinate system {new_system}')
+
+        if 'rows' in new_system:
+            self.hexagon_type = 'pointy-topped'
+        elif 'columns' in new_system:
+            self.hexagon_type = 'flat-topped'
+
         tmp = []
         old_system = self.coordinate_system
         self.coordinate_system = new_system
