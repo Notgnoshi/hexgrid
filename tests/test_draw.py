@@ -13,12 +13,15 @@ def main():
     grid[1, 2] = None
 
     neighbors = grid.neighbor_coordinates((0, 0))
-    neighbors = [grid.convert(c, grid.coordinate_system, 'cube') for c in neighbors]
+    # neighbors = [grid.convert(c, grid.coordinate_system, 'cube') for c in neighbors]
 
-    grid.set_coordinate_system('cube')
+    line = grid.line_coordinates((0, 0), (4, 4), validate=False)
+
+    # grid.set_coordinate_system('cube')
     draw = DrawGrid(grid)
     draw.draw_hexagons(grid.keys(), labels=True, fill='#7070ff')
     draw.draw_hexagons(neighbors, labels=True, fill='#ff7070')
+    draw.draw_hexagons(line, labels=True, fill='#70ff70')
     draw.draw()
 
 

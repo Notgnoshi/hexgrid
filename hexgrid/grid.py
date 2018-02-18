@@ -79,40 +79,6 @@ class Grid(dict):
         """
         return f'<Grid {self.hexagon_type}, {self.coordinate_system}>'
 
-    def neighbor_coordinates(self, coordinates, validate=True):
-        """
-            Returns neighboring cell coordinates to some given coordinates. Does not include the
-            given coordinates.
-        """
-
-        def __add_coordinates(t1, t2):
-            """Add two tuples componentwise"""
-            return tuple(c1 + c2 for c1, c2 in zip(t1, t2))
-
-        coordinates = self.convert(coordinates, self.coordinate_system, 'cube')
-        cube_directions = [
-            (+1, -1, 0), (+1, 0, -1), (0, +1, -1),
-            (-1, +1, 0), (-1, 0, +1), (0, -1, +1)
-        ]
-
-        neighbors = [__add_coordinates(d, coordinates) for d in cube_directions]
-        neighbors = [self.convert(c, 'cube', self.coordinate_system) for c in neighbors]
-        if validate:
-            return [neighbor for neighbor in neighbors if neighbor in self]
-        return neighbors
-
-    def neighbors(self, coordinates):
-        """
-            Returns the items in the neighboring cells of some given coordinate. Does not include
-            the item at the given coordinates.
-        """
-        adjacents = []
-        for neighbor in self.neighbor_coordinates(coordinates):
-            if neighbor in self:
-                adjacents.append(self[neighbor])
-
-        return adjacents
-
     def _assert_valid_coordinates(self, coordinates):
         """
             Check coordinates for validity, raising a ValueError if they are invalid.
@@ -157,11 +123,88 @@ class Grid(dict):
 
         super().__delitem__(coordinates)
 
+    def neighbor_coordinates(self, coordinates, validate=True):
+        """
+            Returns neighboring cell coordinates to some given coordinates. Does not include the
+            given coordinates.
+        """
+
+        def __add_coordinates(t1, t2):
+            """Add two tuples componentwise"""
+            return tuple(c1 + c2 for c1, c2 in zip(t1, t2))
+
+        coordinates = self.convert(coordinates, self.coordinate_system, 'cube')
+        cube_directions = [
+            (+1, -1, 0), (+1, 0, -1), (0, +1, -1),
+            (-1, +1, 0), (-1, 0, +1), (0, -1, +1)
+        ]
+
+        neighbors = [__add_coordinates(d, coordinates) for d in cube_directions]
+        neighbors = [self.convert(c, 'cube', self.coordinate_system) for c in neighbors]
+        if validate:
+            return [neighbor for neighbor in neighbors if neighbor in self]
+        return neighbors
+
+    def neighbors(self, coordinates):
+        """
+            Returns the items in the neighboring cells of some given coordinate. Does not include
+            the item at the given coordinates.
+        """
+        return [self[key] for key in self.neighbor_coordinates(coordinates)]
+
     def distance(self, coord1, coord2):
         """
             Returns the distance between two given cell coordinates.
         """
-        raise NotImplementedError
+        ax, ay, az = self.convert(coord1, self.coordinate_system, 'cube')
+        bx, by, bz = self.convert(coord2, self.coordinate_system, 'cube')
+        return max(abs(ax - bx), abs(ay - by), abs(az - bz))
+
+    def line_coordinates(self, coord1, coord2, validate=True):
+        """
+            Returns a list of coordinates defining a line between the two given coordinates.
+        """
+        def __lerp(a, b, t):
+            """Runs linear interpolation between two numbers a and b"""
+            return a + (b - a) * t
+
+        def __cube_lerp(a, b, t):
+            """Runs linear interpolation between two cubic points"""
+            ax, ay, az = a
+            bx, by, bz = b
+            return __lerp(ax, bx, t), __lerp(ay, by, t), __lerp(az, bz, t)
+
+        def __cube_round(coord):
+            """Rounds the floating x, y, z cubic coordinates back into integers."""
+            x, y, z = coord
+            rx, ry, rz = round(x), round(y), round(z)
+            dx, dy, dz = abs(rx - x), abs(ry - y), abs(rz - z)
+            if dx > dy and dx > dz:
+                rx = -ry - rz
+            elif dy > dz:
+                ry = -rx - rz
+            else:
+                rz = -rx - ry
+
+            return int(rx), int(ry), int(rz)
+
+        N = self.distance(coord1, coord2)
+        # Convert coordinate system after computing distance so distance knows what system to use
+        coord1 = self.convert(coord1, self.coordinate_system, 'cube')
+        coord2 = self.convert(coord2, self.coordinate_system, 'cube')
+
+        cells = [__cube_round(__cube_lerp(coord1, coord2, i / N)) for i in range(N + 1)]
+        cells = [self.convert(c, 'cube', self.coordinate_system) for c in cells]
+
+        if validate:
+            return [c for c in cells if c in self]
+        return cells
+
+    def lines(self, coord1, coord2):
+        """
+            Returns all cells on a line between the two given coordinates.
+        """
+        return [self[key] for key in self.line_coordinates(coord1, coord2)]
 
     def within(self, cell, radius):
         """

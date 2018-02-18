@@ -185,3 +185,16 @@ class TestGrid(unittest.TestCase):
         g.set_coordinate_system('cube')
         coord = tuple(g.keys())[0]
         self.assertSequenceEqual(coord, (0, 0, 0))
+
+    def test_distance(self):
+        g = Grid()
+
+        self.assertEqual(g.distance((0, 0), (1, 0)), 1)
+        self.assertEqual(g.distance((0, 0), (0, -2)), 2)
+        g = Grid(coordinate_system='cube')
+        self.assertEqual(g.distance((0, 0, 0), (1, 0, -1)), 1)
+        self.assertEqual(g.distance((0, 0, 0), (0, -2, 2)), 2)
+
+        g = Grid(coordinate_system='axial')
+        self.assertEqual(g.distance((0, 0), (1, 0)), 1)
+        self.assertEqual(g.distance((0, 0), (0, -2)), 2)
