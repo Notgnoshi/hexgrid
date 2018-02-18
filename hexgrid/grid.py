@@ -142,7 +142,7 @@ class Grid(dict):
             Returns the items in the neighboring cells of some given coordinate. Does not include
             the item at the given coordinates.
         """
-        return [self[key] for key in self.neighbor_coordinates(coordinates)]
+        return [self[key] for key in self.neighbor_coordinates(coordinates, validate=True)]
 
     def distance(self, coord1, coord2):
         """
@@ -196,24 +196,50 @@ class Grid(dict):
         """
             Returns all cells on a line between the two given coordinates.
         """
-        return [self[key] for key in self.line_coordinates(coord1, coord2)]
+        return [self[key] for key in self.line_coordinates(coord1, coord2, validate=True)]
 
-    def within(self, cell, radius):
+    def within_coordinates(self, center, radius, validate=True):
+        """
+            Returns a list of coordinates within `radius` of `center`.
+        """
+        raise NotImplementedError
+
+    def within(self, center, radius):
         """
             Returns all cells within `distance` of the given cell.
         """
+        return [self[key] for key in self.within_coordinates(center, radius, validate=True)]
+
+    def ring_coordinates(self, center, radius, validate=True):
+        """
+            Returns a list of coordinates that are `radius` away from the given center.
+        """
         raise NotImplementedError
 
-    def ring(self, cell, radius):
+    def ring(self, center, radius):
         """
-            Returns all cells `radius` away of the given cell.
+            Returns all cells `radius` away of the given center.
+        """
+        return [self[key] for key in self.ring_coordinates(center, radius, validate=True)]
+
+    def spiral_coordinates(self, center, radius, validate=True):
+        """
+            Returns an ordered list of coordinates spiralling away from the given
+            center to some radius.
         """
         raise NotImplementedError
 
-    def spiral(self, cell, radius):
+    def spiral(self, center, radius):
         """
             Returns an ordered list of cells spiralling away from the given
             cell with a given radius.
+        """
+        return [self[key] for key in self.spiral_coordinates(center, radius, validate=True)]
+
+    def shortest_path_coordinates(self, coordinate1, coordinate2):
+        """
+            Returns an ordered list of coordinates between two given coordinates representing
+            the shortest path between them. Returns an empty list of no such path exists.
         """
         raise NotImplementedError
 
@@ -222,7 +248,7 @@ class Grid(dict):
             Returns an ordered list of cells between two given coordinates representing the
             shortest path between those coordinates. Returns an empty list if no such path exists.
         """
-        raise NotImplementedError
+        return [self[key] for key in self.shortest_path_coordinates(coordinate1, coordinate2)]
 
     @classmethod
     def convert(cls, coordinates, from_sys, to_sys):
