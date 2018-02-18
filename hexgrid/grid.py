@@ -76,9 +76,7 @@ class Grid(dict):
         """
             Check coordinates for validity, raising a ValueError if they are invalid.
         """
-        if isinstance(coordinates, int):
-            raise NotImplementedError('integer indexing not supported')
-        elif isinstance(coordinates, tuple):
+        if isinstance(coordinates, tuple):
             if self.coordinate_system is CUBIC and len(coordinates) != 3:
                 raise ValueError('key must be a 3-tuple')
             elif self.coordinate_system is not CUBIC and len(coordinates) != 2:

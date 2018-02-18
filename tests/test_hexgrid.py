@@ -82,11 +82,11 @@ class TestGrid(unittest.TestCase):
 
     def test_valid_coordinates(self):
         g = Grid()
-        self.assertRaises(NotImplementedError, g._assert_valid_coordinates, 1)
-        self.assertRaises(NotImplementedError, g._assert_valid_coordinates, 0)
+        self.assertRaises(ValueError, g._assert_valid_coordinates, 1)
+        self.assertRaises(ValueError, g._assert_valid_coordinates, 0)
         self.assertRaises(ValueError, g._assert_valid_coordinates, None)
-        self.assertRaises(NotImplementedError, g._assert_valid_coordinates, True)
-        self.assertRaises(NotImplementedError, g._assert_valid_coordinates, False)
+        self.assertRaises(ValueError, g._assert_valid_coordinates, True)
+        self.assertRaises(ValueError, g._assert_valid_coordinates, False)
         self.assertRaises(ValueError, g._assert_valid_coordinates, (0,))
         g._assert_valid_coordinates((0, 0))
         self.assertRaises(ValueError, g._assert_valid_coordinates, (0, 0, 0))
