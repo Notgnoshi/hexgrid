@@ -202,7 +202,20 @@ class Grid(dict):
         """
             Returns a list of coordinates within `radius` of `center`.
         """
-        raise NotImplementedError
+        x, y, z = self.convert(center, self.coordinate_system, CUBIC)
+        coords = []
+        for dx in range(-radius, radius + 1):
+            m = max(-radius, -dx - radius)
+            M = min(radius, -dx + radius)
+            for dy in range(m, M + 1):
+                dz = -dx - dy
+                coords.append((x + dx, y + dy, z + dz))
+
+        coords = [self.convert(c, CUBIC, self.coordinate_system) for c in coords]
+
+        if validate:
+            return [key for key in coords if key in self]
+        return coords
 
     def within(self, center, radius):
         """

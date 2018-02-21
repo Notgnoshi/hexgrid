@@ -204,23 +204,19 @@ class TestGrid(unittest.TestCase):
 
     def test_within_coordinates(self):
         g = Grid(hexagon_type=HexagonType.FLAT, coordinate_system=CoordinateSystem.OFFSET)
-
         for i in range(-3, 4):
             for j in range(-3, 4):
                 g[i, j] = None
 
         expected = [(0, 0), (0, -1), (0, 1), (1, -1), (1, 0), (-1, -1), (-1, 0)]
-        # self.assertCountEqual(g.within_coordinates((0, 0), 1, validate=True), expected)
-        self.assertRaises(NotImplementedError, g.within_coordinates, (0, 0), 1)
+        self.assertCountEqual(g.within_coordinates((0, 0), 1, validate=True), expected)
 
         expected = [(0, 0), (0, -1), (0, 1), (1, -1), (1, 0), (-1, -1), (-1, 0),
                     (0, -2), (1, -2), (2, -1), (2, 0), (2, 1), (1, 1), (0, 2),
                     (-1, 1), (-2, 1), (-2, 0), (-2, -1), (-1, -2)]
-        # self.assertCountEqual(g.within_coordinates((0, 0), 2, validate=True), expected)
-        self.assertRaises(NotImplementedError, g.within_coordinates, (0, 0), 2)
+        self.assertCountEqual(g.within_coordinates((0, 0), 2, validate=True), expected)
 
         g = Grid(hexagon_type=HexagonType.FLAT, coordinate_system=CoordinateSystem.CUBIC)
-
         for i in range(-3, 4):
             for j in range(-3, 4):
                 c = Grid.convert((i, j), CoordinateSystem.AXIAL, CoordinateSystem.CUBIC)
@@ -228,36 +224,30 @@ class TestGrid(unittest.TestCase):
 
         expected = [(2, 0, -2), (2, 1, -3), (3, 0, -3), (3, -1, -2), (2, -1, -1),
                     (1, 0, -1), (1, 1, -2)]
-        # self.assertCountEqual(g.within_coordinates((2, 0, -2), 1, validate=True), expected)
-        self.assertRaises(NotImplementedError, g.within_coordinates, (2, 0, -2), 1)
+        self.assertCountEqual(g.within_coordinates((2, 0, -2), 1, validate=True), expected)
 
         expected = [(2, 0, -2), (2, 1, -3), (3, 0, -3), (3, -1, -2), (2, -1, -1),
                     (1, 0, -1), (1, 1, -2), (3, -2, -1), (2, -2, 0), (1, -1, 0),
                     (0, 0, 0), (0, 1, -1), (0, 2, -2), (1, 2, -3)]
-        # self.assertCountEqual(g.within_coordinates((2, 0, -2), 2, validate=True), expected)
-        self.assertRaises(NotImplementedError, g.within_coordinates, (2, 0, -2), 2)
+        self.assertCountEqual(g.within_coordinates((2, 0, -2), 2, validate=True), expected)
 
     def test_within(self):
         g = Grid(hexagon_type=HexagonType.FLAT, coordinate_system=CoordinateSystem.OFFSET)
-
         for i in range(-3, 4):
             for j in range(-3, 4):
                 g[i, j] = None
 
         expected = [None] * 7
-        # self.assertCountEqual(g.within((0, 0), 1, validate=True), expected)
-        self.assertRaises(NotImplementedError, g.within, (0, 0), 1)
+        self.assertCountEqual(g.within((0, 0), 1), expected)
 
         g = Grid(hexagon_type=HexagonType.FLAT, coordinate_system=CoordinateSystem.CUBIC)
-
         for i in range(-3, 4):
             for j in range(-3, 4):
                 c = Grid.convert((i, j), CoordinateSystem.AXIAL, CoordinateSystem.CUBIC)
                 g[c] = None
 
         expected = [None] * 7
-        # self.assertCountEqual(g.within((2, 0, -2), 1, validate=True), expected)
-        self.assertRaises(NotImplementedError, g.within, (2, 0, -2), 1)
+        self.assertCountEqual(g.within((2, 0, -2), 1), expected)
 
     def test_ring_coordinates(self):
         g = Grid(HexagonType.FLAT, CoordinateSystem.AXIAL)
