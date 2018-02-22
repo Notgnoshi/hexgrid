@@ -1,4 +1,4 @@
-from .utils import tuple_add, tuple_multiply
+from .utils import tuple_add, tuple_multiply, a_star_search
 from .enums import CoordinateSystem, HexagonType
 from .enums import FLAT, POINTY
 from .enums import OFFSET, CUBIC, AXIAL
@@ -255,19 +255,41 @@ class Grid(dict):
         """
         return [self[key] for key in self.ring_coordinates(center, radius, validate=True)]
 
-    def shortest_path_coordinates(self, coordinate1, coordinate2):
+    def shortest_path_coordinates(self, src, dest):
         """
             Returns an ordered list of coordinates between two given coordinates representing
             the shortest path between them. Returns an empty list of no such path exists.
         """
-        raise NotImplementedError
+        def backtrack(srcs, dest):
+            """Backtracks through the dict srcs to find the path to dest"""
+            path = [dest]
+            while True:
+                if dest in srcs and srcs[dest] is not None:
+                    dest = srcs[dest]
+                    path.append(dest)
+                else:
+                    break
 
-    def shortest_path(self, coordinate1, coordinate2):
+            return path
+
+        # came_from is in the form {dest: src} where you get to dest from src
+        came_from = a_star_search(self, src, dest)
+        # back track from the dest to get the path from src to dest
+        path = list(reversed(backtrack(came_from, dest)))
+        if path[0] != src:
+            return []
+        return path
+
+    def shortest_path(self, src, dest):
         """
             Returns an ordered list of cells between two given coordinates representing the
             shortest path between those coordinates. Returns an empty list if no such path exists.
+            Uses the A* algorithm.
+
+            As of yet, Grid does not support cell weighting, so the shortest path is by distance
+            only.
         """
-        return [self[key] for key in self.shortest_path_coordinates(coordinate1, coordinate2)]
+        return [self[key] for key in self.shortest_path_coordinates(src, dest)]
 
     @classmethod
     def convert(cls, coordinates, from_sys, to_sys):

@@ -6,7 +6,6 @@ from tests import run_once
 
 from .grid import Grid
 from .draw import DrawGrid
-from .utils import tuple_add, tuple_multiply
 
 from .enums import HexagonType, CoordinateSystem
 from .enums import FLAT, POINTY
