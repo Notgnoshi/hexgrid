@@ -1,3 +1,4 @@
+from .utils import tuple_add, tuple_multiply
 from .enums import CoordinateSystem, HexagonType
 from .enums import FLAT, POINTY
 from .enums import OFFSET, CUBIC, AXIAL
@@ -8,6 +9,10 @@ class Grid(dict):
     """
         Implements a configurable hexagonal Grid.
     """
+    __CUBE_DIRECTIONS = [
+        (+1, -1, 0), (+1, 0, -1), (0, +1, -1),
+        (-1, +1, 0), (-1, 0, +1), (0, -1, +1)
+    ]
 
     def __init__(self, hexagon_type=POINTY, coordinate_system=OFFSET):
         """
@@ -120,18 +125,9 @@ class Grid(dict):
             given coordinates.
         """
 
-        # TODO: move to a utils module?
-        def __add_coordinates(t1, t2):
-            """Add two tuples componentwise"""
-            return tuple(c1 + c2 for c1, c2 in zip(t1, t2))
-
         coordinates = self.convert(coordinates, self.coordinate_system, CUBIC)
-        cube_directions = [
-            (+1, -1, 0), (+1, 0, -1), (0, +1, -1),
-            (-1, +1, 0), (-1, 0, +1), (0, -1, +1)
-        ]
 
-        adj = [__add_coordinates(d, coordinates) for d in cube_directions]
+        adj = [tuple_add(d, coordinates) for d in self.__CUBE_DIRECTIONS]
         adj = [self.convert(c, CUBIC, self.coordinate_system) for c in adj]
         if validate:
             return [neighbor for neighbor in adj if neighbor in self]
@@ -227,7 +223,31 @@ class Grid(dict):
         """
             Returns a list of coordinates that are `radius` away from the given center.
         """
-        raise NotImplementedError
+        if not isinstance(radius, int):
+            raise ValueError('Radius must be an integer')
+        elif radius < 0:
+            raise ValueError('Radius must be positive')
+        elif radius == 0:
+            # The below algorithm does not work for zero radius
+            return [center]
+
+        center = self.convert(center, self.coordinate_system, CUBIC)
+        # Get the cell some direction from the origin, move it out by radius, then shift by center
+        # Apparently this *has* to be the first direction for the math below to line up
+        start = tuple_add(center, tuple_multiply(self.__CUBE_DIRECTIONS[4], radius))
+        results = []
+
+        for d in range(6):
+            for _ in range(radius):
+                results.append(start)
+                # Start walking around the ring
+                start = tuple_add(start, self.__CUBE_DIRECTIONS[d])
+
+        results = [self.convert(r, CUBIC, self.coordinate_system) for r in results]
+
+        if validate:
+            return [c for c in results if c in self]
+        return results
 
     def ring(self, center, radius):
         """

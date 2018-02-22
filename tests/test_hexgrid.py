@@ -256,23 +256,19 @@ class TestGrid(unittest.TestCase):
                 g[i, j] = None
 
         expected = [(0, 2), (1, 1), (2, 0)]
-        # self.assertCountEqual(g.ring_coordinates((0, 0), 2, validate=True), expected)
-        self.assertRaises(NotImplementedError, g.ring_coordinates, (0, 0), 2)
+        self.assertCountEqual(g.ring_coordinates((0, 0), 2, validate=True), expected)
 
         expected = g.neighbor_coordinates((1, 2), validate=True)
-        # self.assertCountEqual(g.ring_coordinates((1, 2), 1, validate=True), expected)
-        self.assertRaises(NotImplementedError, g.ring_coordinates, (1, 2), 2)
+        self.assertCountEqual(g.ring_coordinates((1, 2), 1, validate=True), expected)
 
         g = Grid(hexagon_type=HexagonType.FLAT, coordinate_system=CoordinateSystem.CUBIC)
-
         for i in range(-3, 4):
             for j in range(-3, 4):
                 c = Grid.convert((i, j), CoordinateSystem.AXIAL, CoordinateSystem.CUBIC)
                 g[c] = None
 
         expected = [(0, -3, 3), (1, -3, 2), (2, -3, 1), (3, -3, 0)]
-        # self.assertCountEqual(g.ring_coordinates((3, -6, 3), 3), expected)
-        self.assertRaises(NotImplementedError, g.ring_coordinates, (3, -6, 3), 3)
+        self.assertCountEqual(g.ring_coordinates((3, -6, 3), 3), expected)
 
     def test_ring(self):
         g = Grid(HexagonType.FLAT, CoordinateSystem.AXIAL)
@@ -281,20 +277,16 @@ class TestGrid(unittest.TestCase):
                 g[i, j] = None
 
         expected = [None] * 3
-        # self.assertCountEqual(g.ring((0, 0), 2, validate=True), expected)
-        self.assertRaises(NotImplementedError, g.ring, (0, 0), 2)
+        self.assertCountEqual(g.ring((0, 0), 2), expected)
 
         expected = g.neighbors((1, 2))
-        # self.assertCountEqual(g.ring((1, 2), 1, validate=True), expected)
-        self.assertRaises(NotImplementedError, g.ring, (1, 2), 2)
+        self.assertCountEqual(g.ring((1, 2), 1), expected)
 
         g = Grid(hexagon_type=HexagonType.FLAT, coordinate_system=CoordinateSystem.CUBIC)
-
         for i in range(-3, 4):
             for j in range(-3, 4):
                 c = Grid.convert((i, j), CoordinateSystem.AXIAL, CoordinateSystem.CUBIC)
                 g[c] = None
 
         expected = [None] * 4
-        # self.assertCountEqual(g.ring((3, -6, 3), 3), expected)
-        self.assertRaises(NotImplementedError, g.ring, (3, -6, 3), 3)
+        self.assertCountEqual(g.ring((3, -6, 3), 3), expected)

@@ -6,6 +6,7 @@ from tests import run_once
 
 from .grid import Grid
 from .draw import DrawGrid
+from .utils import tuple_add, tuple_multiply
 
 from .enums import HexagonType, CoordinateSystem
 from .enums import FLAT, POINTY
@@ -20,4 +21,5 @@ def load_tests(loader, tests, ignore):
     tests.addTests(doctest.DocTestSuite('hexgrid.enums'))
     tests.addTests(doctest.DocTestSuite('hexgrid.grid'))
     tests.addTests(doctest.DocTestSuite('hexgrid.draw'))
+    tests.addTests(doctest.DocTestSuite('hexgrid.utils'))
     return tests
