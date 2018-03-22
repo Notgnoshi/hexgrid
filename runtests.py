@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from tests import runtests
+import nose
 
-if __name__ == '__main__':
-    runtests()
+nose.main(argv=['', '--with-doctest'])
