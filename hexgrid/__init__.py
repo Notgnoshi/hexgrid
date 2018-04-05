@@ -1,6 +1,22 @@
 """
-Defines a configurable hexagonal grid.
+Defines a configurable hexagonal Grid. The Grid subclasses dict,
+but adds convenience wrappers for different hexagon types, different
+coordinate systems, and several operations on the Grid.
+
+Example:
+>>> g = Grid()
+>>> g[1, 0] = '1 0'
+>>> g[0, 0] = '0 0'
+>>> g.items()
+dict_items([((1, 0), '1 0'), ((0, 0), '0 0')])
+>>> g[0, 0]
+'0 0'
+>>> g[-1, 1]
+Traceback (most recent call last):
+...
+KeyError: 'No item found at (-1, 1)'
 """
+
 from .grid import Grid
 from .draw import DrawGrid
 

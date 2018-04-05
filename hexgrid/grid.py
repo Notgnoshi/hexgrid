@@ -9,6 +9,8 @@ class Grid(dict):
     """
         Implements a configurable hexagonal Grid.
     """
+
+    # The six standard directions in cubic coordinates
     __CUBE_DIRECTIONS = [
         (+1, -1, 0), (+1, 0, -1), (0, +1, -1),
         (-1, +1, 0), (-1, 0, +1), (0, -1, +1)
